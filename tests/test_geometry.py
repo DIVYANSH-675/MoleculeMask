@@ -48,3 +48,24 @@ def test_single_molecule_backward():
     loss = (pred - p[:1]).square().mean() + prop.square().mean()
     loss.backward()
     assert all(v.grad is not None and torch.isfinite(v.grad).all() for v in model.parameters())
+
+
+def test_loader_rejects_values_that_overflow_training_dtype(tmp_path):
+    import numpy as np
+    import pytest
+
+    from moleculemask.model import load_data
+
+    p, z, y = synthetic(5)
+    for field in ("positions", "properties"):
+        arrays = dict(
+            positions=p.astype(np.float64), atomic_numbers=z, properties=y.astype(np.float64)
+        )
+        arrays[field].flat[0] = 1e100
+        path = tmp_path / (field + ".npz")
+        np.savez(path, **arrays)
+        with pytest.raises(ValueError, match="finite float32"):
+            load_data(path)
+    np.savez(tmp_path / "valid.npz", positions=p, atomic_numbers=z, properties=y)
+    loaded = load_data(tmp_path / "valid.npz")
+    np.testing.assert_array_equal(loaded[0], p)

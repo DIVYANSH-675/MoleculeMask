@@ -74,11 +74,17 @@ def load_data(path):
         p, z, y = archive["positions"], archive["atomic_numbers"], archive["properties"]
     if p.ndim != 3 or p.shape[-1] != 3 or p.shape[:2] != z.shape or y.shape != (len(p),):
         raise ValueError("Expected positions[B,N,3], atomic_numbers[B,N], properties[B]")
+    if p.dtype.kind not in "fiu" or y.dtype.kind not in "fiu":
+        raise ValueError("Positions and properties must be real numeric arrays")
     if len(p) < 5 or p.shape[1] < 2 or not np.isfinite(p).all() or not np.isfinite(y).all():
         raise ValueError("Need at least five finite molecules with at least two atoms")
     if not np.issubdtype(z.dtype, np.integer) or z.min() < 1 or z.max() > 118:
         raise ValueError("Atomic numbers must be integers in [1,118]")
-    return p.astype(np.float32), z.astype(np.int64), y.astype(np.float32)
+    with np.errstate(over="ignore"):
+        positions, properties = p.astype(np.float32), y.astype(np.float32)
+    if not np.isfinite(positions).all() or not np.isfinite(properties).all():
+        raise ValueError("Positions and properties must be representable as finite float32 values")
+    return positions, z.astype(np.int64), properties
 
 
 def one_mask(batch, atoms, random=True):
