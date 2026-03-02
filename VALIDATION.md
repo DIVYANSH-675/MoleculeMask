@@ -26,3 +26,10 @@ The property head learns the synthetic target. Coordinate reconstruction is effe
 Use the README commands, matching the seeds and sizes above. AstroBridge's final evaluation used seed 202. Exact floating-point values can differ across dependency versions and hardware. Generated training checkpoints remain local under ignored `runs/` directories; they are not bundled in the repository or Python distribution.
 
 The CI workflow validates Python 3.10 and 3.12 independently; its current result is visible in [GitHub Actions](https://github.com/DIVYANSH-675/MoleculeMask/actions). No GPU benchmark, large external dataset, or paper-result reproduction was run. There is no claim that these development experiments establish general research superiority.
+
+## Input-validation follow-up (2026-11-17)
+
+Reject molecular values that overflow the training dtype. Regression tests cover the rejected inputs and valid usage.
+The updated full suite passed locally: **6 tests**, including the CLI workflow.
+Ruff lint and format checks also passed. The exploratory experiment results above
+remain the original measurements; this follow-up did not rerun or replace them.

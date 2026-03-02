@@ -60,6 +60,14 @@ CI runs the suite on Python 3.10 and 3.12. Small synthetic runs validate softwar
 
 This implementation uses point reconstruction rather than EMPP's published position-distribution objective. It is not a reproduction of the paper's architecture or benchmark results. No QM9/MD17 results, chemical validity, force prediction, or energy conservation are claimed. Fixed atom counts, dense quadratic message passing, and multimodal missing coordinates limit this prototype. Synthetic masked coordinates are largely unpredictable; strong symmetry tests do not imply accurate chemistry.
 
+## Preparing numeric molecular data
+
+Positions and properties must be real numeric arrays. The loader converts them to float32 and verifies that the converted values remain finite. A finite float64 value such as `1e100` cannot be used directly: it overflows float32 and now raises a descriptive `ValueError` before training.
+
+Keep units consistent across training and evaluation. If your physical units produce very large values, choose a scientifically meaningful conversion before saving the NPZ file, and record that conversion alongside your dataset. The loader does not silently clip values or change physical units.
+
+Atomic numbers remain integer arrays in the range 1..118. The existing model expects a fixed number of atoms per example; padding is not interpreted as a missing atom.
+
 ## License
 
 The original code in this repository is MIT licensed, copyright 2026 Divyansh Gupta. See [LICENSE](LICENSE). The cited paper is a separate work; this code's license does not relicense the paper or external datasets.
