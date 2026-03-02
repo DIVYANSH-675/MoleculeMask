@@ -4,6 +4,7 @@ import json
 import numpy as np
 import torch
 
+from . import __version__
 from .io import seed_all, start_run, write_json, write_npz
 from .model import MaskedMolecule, load_data, one_mask, synthetic
 
@@ -29,6 +30,7 @@ def score(model, arrays, mean, scale):
 
 def main():
     parser = argparse.ArgumentParser(description="MoleculeMask equivariant geometry prototype")
+    parser.add_argument("--version", action="version", version="moleculemask " + __version__)
     parser.add_argument("command", choices=["generate", "train", "evaluate"])
     parser.add_argument("--data")
     parser.add_argument("--output", default=None)
