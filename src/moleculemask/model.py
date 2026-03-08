@@ -50,6 +50,18 @@ class MaskedMolecule(nn.Module):
             or (masked.sum(1) >= positions.shape[1]).any()
         ):
             raise ValueError("Each molecule needs both visible and masked atoms")
+        if (
+            not len(positions)
+            or not positions.is_floating_point()
+            or not torch.isfinite(positions).all()
+        ):
+            raise ValueError("Positions must be a nonempty finite floating-point batch")
+        if (
+            atomic_numbers.dtype not in (torch.int32, torch.int64)
+            or (atomic_numbers < 1).any()
+            or (atomic_numbers > 118).any()
+        ):
+            raise ValueError("Atomic numbers must be integer tensors in [1,118]")
         visible = (1 - masked)[..., None]
         center = (positions * visible).sum(1, keepdim=True) / visible.sum(1, keepdim=True)
         coordinates = positions * visible + center * masked[..., None]

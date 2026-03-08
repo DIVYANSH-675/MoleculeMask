@@ -69,3 +69,20 @@ def test_loader_rejects_values_that_overflow_training_dtype(tmp_path):
     np.savez(tmp_path / "valid.npz", positions=p, atomic_numbers=z, properties=y)
     loaded = load_data(tmp_path / "valid.npz")
     np.testing.assert_array_equal(loaded[0], p)
+
+
+def test_direct_model_calls_validate_positions_and_elements():
+    import pytest
+
+    p, z, mask = fixture()
+    model = MaskedMolecule()
+    invalid = p.clone()
+    invalid[0, 0, 0] = float("nan")
+    with pytest.raises(ValueError, match="Positions"):
+        model(invalid, z, mask)
+    with pytest.raises(ValueError, match="Atomic numbers"):
+        model(p, z.float(), mask)
+    invalid_z = z.clone()
+    invalid_z[0, 0] = 119
+    with pytest.raises(ValueError, match="Atomic numbers"):
+        model(p, invalid_z, mask)
