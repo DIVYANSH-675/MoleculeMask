@@ -62,6 +62,7 @@ class MaskedMolecule(nn.Module):
             or (atomic_numbers > 118).any()
         ):
             raise ValueError("Atomic numbers must be integer tensors in [1,118]")
+        masked = masked.to(dtype=positions.dtype)
         visible = (1 - masked)[..., None]
         center = (positions * visible).sum(1, keepdim=True) / visible.sum(1, keepdim=True)
         coordinates = positions * visible + center * masked[..., None]

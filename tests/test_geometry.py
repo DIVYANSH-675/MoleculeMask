@@ -86,3 +86,14 @@ def test_direct_model_calls_validate_positions_and_elements():
     invalid_z[0, 0] = 119
     with pytest.raises(ValueError, match="Atomic numbers"):
         model(p, invalid_z, mask)
+
+
+def test_boolean_masks_match_numeric_masks_without_mutating_inputs():
+    p, z, mask = fixture()
+    model = MaskedMolecule()
+    boolean = mask.bool()
+    expected = model(p, z, mask)
+    actual = model(p, z, boolean)
+    torch.testing.assert_close(actual[0], expected[0])
+    torch.testing.assert_close(actual[1], expected[1])
+    assert boolean.dtype == torch.bool
