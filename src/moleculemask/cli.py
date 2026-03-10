@@ -37,8 +37,11 @@ def main():
     parser.add_argument("--checkpoint")
     parser.add_argument("--seed", type=int, default=5)
     parser.add_argument("--count", type=int, default=128)
+    parser.add_argument("--property-weight", type=float, default=0.1)
     parser.add_argument("--epochs", type=int, default=12)
     a = parser.parse_args()
+    if not np.isfinite(a.property_weight) or a.property_weight < 0:
+        parser.error("property-weight must be finite and nonnegative")
     a.output = a.output or (
         "runs/report.json"
         if a.command == "evaluate"
@@ -78,7 +81,10 @@ def main():
             mask = one_mask(len(ids), positions.shape[1])
             predicted, prop = model(positions[ids], numbers[ids], mask)
             geometry = ((predicted - positions[ids]).square().sum(-1) * mask).sum() / mask.sum()
-            loss = geometry + 0.1 * (prop - (targets[ids] - mean) / scale).square().mean()
+            loss = (
+                geometry
+                + a.property_weight * (prop - (targets[ids] - mean) / scale).square().mean()
+            )
             if not torch.isfinite(loss):
                 raise ValueError("Non-finite loss")
             optimizer.zero_grad(set_to_none=True)
