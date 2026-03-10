@@ -38,8 +38,11 @@ def main():
     parser.add_argument("--seed", type=int, default=5)
     parser.add_argument("--count", type=int, default=128)
     parser.add_argument("--property-weight", type=float, default=0.1)
+    parser.add_argument("--learning-rate", type=float, default=0.001)
     parser.add_argument("--epochs", type=int, default=12)
     a = parser.parse_args()
+    if not np.isfinite(a.learning_rate) or a.learning_rate <= 0:
+        parser.error("learning-rate must be finite and positive")
     if not np.isfinite(a.property_weight) or a.property_weight < 0:
         parser.error("property-weight must be finite and nonnegative")
     a.output = a.output or (
@@ -71,7 +74,7 @@ def main():
     training = tuple(torch.as_tensor(x[order[cut:]]) for x in arrays)
     positions, numbers, targets = training
     mean, scale = float(targets.mean()), max(float(targets.std(unbiased=False)), 1e-6)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=a.learning_rate)
     history = []
     for epoch in range(a.epochs):
         model.train()

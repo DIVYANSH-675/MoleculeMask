@@ -10,3 +10,10 @@ def test_property_weight_rejects_negative_values(monkeypatch, capsys):
     with pytest.raises(SystemExit):
         cli.main()
     assert "property-weight must" in capsys.readouterr().err
+
+
+def test_learning_rate_rejects_nonfinite_values(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["moleculemask", "train", "--learning-rate", "inf"])
+    with pytest.raises(SystemExit):
+        cli.main()
+    assert "learning-rate must" in capsys.readouterr().err
