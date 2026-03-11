@@ -40,6 +40,11 @@ def main():
     parser.add_argument("--property-weight", type=float, default=0.1)
     parser.add_argument("--learning-rate", type=float, default=0.001)
     parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument(
+        "--selection-metric",
+        choices=["masked_position_rmse", "property_mae"],
+        default="masked_position_rmse",
+    )
     parser.add_argument("--epochs", type=int, default=12)
     a = parser.parse_args()
     if a.batch_size < 1:
@@ -79,6 +84,8 @@ def main():
     mean, scale = float(targets.mean()), max(float(targets.std(unbiased=False)), 1e-6)
     optimizer = torch.optim.Adam(model.parameters(), lr=a.learning_rate)
     history = []
+    best = float("inf")
+    best_epoch = None
     for epoch in range(a.epochs):
         model.train()
         total = 0.0
@@ -101,6 +108,16 @@ def main():
         history.append(
             dict(epoch=epoch, loss=total / len(positions), **score(model, validation, mean, scale))
         )
+        if history[-1][a.selection_metric] < best:
+            best = history[-1][a.selection_metric]
+            best_epoch = epoch
+            torch.save(
+                dict(model=model.state_dict(), mean=mean, scale=scale, config=vars(a), epoch=epoch),
+                output / "best.pt",
+            )
+    write_json(
+        output / "selection.json", dict(metric=a.selection_metric, value=best, epoch=best_epoch)
+    )
     torch.save(
         dict(model=model.state_dict(), mean=mean, scale=scale, config=vars(a)), output / "model.pt"
     )
