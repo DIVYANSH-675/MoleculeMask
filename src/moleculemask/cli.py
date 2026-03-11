@@ -39,8 +39,11 @@ def main():
     parser.add_argument("--count", type=int, default=128)
     parser.add_argument("--property-weight", type=float, default=0.1)
     parser.add_argument("--learning-rate", type=float, default=0.001)
+    parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--epochs", type=int, default=12)
     a = parser.parse_args()
+    if a.batch_size < 1:
+        parser.error("batch-size must be positive")
     if not np.isfinite(a.learning_rate) or a.learning_rate <= 0:
         parser.error("learning-rate must be finite and positive")
     if not np.isfinite(a.property_weight) or a.property_weight < 0:
@@ -80,7 +83,7 @@ def main():
         model.train()
         total = 0.0
         permutation = torch.randperm(len(positions))
-        for ids in permutation.split(16):
+        for ids in permutation.split(a.batch_size):
             mask = one_mask(len(ids), positions.shape[1])
             predicted, prop = model(positions[ids], numbers[ids], mask)
             geometry = ((predicted - positions[ids]).square().sum(-1) * mask).sum() / mask.sum()
