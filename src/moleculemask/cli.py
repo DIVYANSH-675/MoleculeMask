@@ -17,12 +17,18 @@ def score(model, arrays, mean, scale):
         prediction, properties = model(positions, numbers, mask)
         error = ((prediction - positions).square().sum(-1) * mask).sum() / mask.sum()
         mae = (properties * scale + mean - targets).abs().mean()
+        axis_rmse = (
+            ((prediction - positions).square() * mask[..., None]).sum((0, 1)) / mask.sum()
+        ).sqrt()
         visible = (1 - mask)[..., None]
         centroid = (positions * visible).sum(1, keepdim=True) / visible.sum(1, keepdim=True)
         baseline = (((positions - centroid).square().sum(-1) * mask).sum() / mask.sum()).sqrt()
     return dict(
         masked_position_rmse=float(error.sqrt()),
         property_mae=float(mae),
+        x_rmse=float(axis_rmse[0]),
+        y_rmse=float(axis_rmse[1]),
+        z_rmse=float(axis_rmse[2]),
         visible_centroid_rmse=float(baseline),
         training_mean_property_mae=float((targets - mean).abs().mean()),
     )

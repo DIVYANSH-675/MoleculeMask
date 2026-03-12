@@ -97,3 +97,20 @@ def test_boolean_masks_match_numeric_masks_without_mutating_inputs():
     torch.testing.assert_close(actual[0], expected[0])
     torch.testing.assert_close(actual[1], expected[1])
     assert boolean.dtype == torch.bool
+
+
+def test_axis_metrics_preserve_coordinate_error_units():
+    import numpy as np
+
+    from moleculemask.cli import score
+
+    class ZeroPrediction(torch.nn.Module):
+        def forward(self, positions, numbers, mask):
+            return torch.zeros_like(positions), torch.zeros(len(positions))
+
+    positions = np.zeros((1, 2, 3), dtype=np.float32)
+    positions[0, 0] = [3, 4, 0]
+    arrays = positions, np.ones((1, 2), dtype=np.int64), np.zeros(1, dtype=np.float32)
+    report = score(ZeroPrediction(), arrays, 0.0, 1.0)
+    assert report["masked_position_rmse"] == 5
+    assert (report["x_rmse"], report["y_rmse"], report["z_rmse"]) == (3.0, 4.0, 0.0)
