@@ -91,3 +91,12 @@ The installed `moleculemask-artifacts` command offers the same interface. Use fr
 Metric summaries accept JSON arrays, single objects, reports containing `rows` or `episodes`, and streamed JSONL. They summarize numeric fields with population standard deviation and ignore boolean/nonnumeric fields. CSV export accepts flat scalar records; nested data must be transformed first. Comparisons report signed changes, without assuming whether larger values are better. Relative change is null when the baseline is zero.
 
 Bootstrap intervals assume independent observations. Correlated training steps or snapshots from the same run are not independent experimental repetitions; aggregate by run before interpreting an interval. These intervals do not calibrate model uncertainty.
+
+
+## Training controls and checkpoint selection
+
+Training accepts `--learning-rate`, `--batch-size`, and `--property-weight`. A zero property weight disables the scalar-property contribution to the loss. All settings are saved in the run configuration.
+
+`model.pt` remains the final epoch checkpoint. `best.pt` contains the checkpoint selected on the held-out validation partition, and `selection.json` records its epoch, criterion, and value. Use `--selection-metric masked_position_rmse` (default) or `--selection-metric property_mae` according to the experiment's objective; do not choose between them using final test results.
+
+Evaluation also reports `x_rmse`, `y_rmse`, and `z_rmse` in the input coordinate units. Individual axis errors depend on the coordinate frame; the combined Euclidean RMSE remains the rotation-invariant quantity. Tensor callers may use boolean masks, and invalid element IDs or nonfinite positions are rejected before message passing.
