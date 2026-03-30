@@ -100,3 +100,8 @@ Training accepts `--learning-rate`, `--batch-size`, and `--property-weight`. A z
 `model.pt` remains the final epoch checkpoint. `best.pt` contains the checkpoint selected on the held-out validation partition, and `selection.json` records its epoch, criterion, and value. Use `--selection-metric masked_position_rmse` (default) or `--selection-metric property_mae` according to the experiment's objective; do not choose between them using final test results.
 
 Evaluation also reports `x_rmse`, `y_rmse`, and `z_rmse` in the input coordinate units. Individual axis errors depend on the coordinate frame; the combined Euclidean RMSE remains the rotation-invariant quantity. Tensor callers may use boolean masks, and invalid element IDs or nonfinite positions are rejected before message passing.
+
+
+## Experiment analysis
+
+`moleculemask-analysis` (or `python -m moleculemask.analysis_cli`) provides distribution reports, matched-run comparisons, grouped summaries, and training-curve diagnostics. Reports include input-file SHA-256 fingerprints. See [ANALYSIS.md](ANALYSIS.md) for runnable examples, the Python API, statistical assumptions, and interpretation limits. These tools analyze saved observations; they do not constitute new model benchmark results.
